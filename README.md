@@ -100,57 +100,14 @@ Monorepo configurado com API + Web e testes iniciais
 
 ---
 
-✅ Organização preparada para **microsserviços e reuso** no futuro
-
----
-
-## 🚀 Roadmap
-
-### ✅ Fase 0
-Monorepo configurado com API + Web e testes iniciais
-
-### 🔜 Fase 1 — Autenticação + RBAC
-- Registro/Login
-- Refresh token seguro
-- Perfis: `USER` e `ADMIN`
-- Sessão validada no servidor (Next.js SSR)
-
-### 🔜 Fase 2 — Catálogo
-- Produtos, categorias, imagens, estoque
-- Lista com SSG + ISR
-- PDP (Product Details Page) SSR
-
-### 🔜 Fase 3 — Pricing Engine
-- Regras dinâmicas com prioridade
-- PriceSnapshot no add-to-cart
-
-### 🔜 Fase 4 — Carrinho + Checkout
-- Conexão com estoque real
-- Conciliação de concorrência (optimistic locking)
-- Status de pedido
-
-### 🔜 Fase 5 — Recomendação
-- Coleta de eventos
-- Recomendações contextualizadas
-
-### 🔜 Fase 6 — Observabilidade + Segurança
-- Auditoria de domínio
-- Logging e tracing distribuído
-
-### 🔜 Fase 7 — Design System + Storybook
-- UI Components Library independente
-- Publicação NPM
-
----
-
 ## ✅ Scripts Disponíveis
 
 ### API (NestJS)
 ```bash
 cd apps/api
-npm run start:dev    # desenvolvimento
-npm run test         # testes unitários
-npm run prisma       # comandos Prisma
+npm run start:dev    
+npm run test         
+npm run prisma       
 ```
 
 ### WEB (Next.js)
