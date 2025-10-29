@@ -1,33 +1,28 @@
-// apps/api/prisma/seed.ts
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
+import bcrypt from 'bcrypt';
+
 const prisma = new PrismaClient();
 
 async function main() {
   const adminEmail = 'admin@valoraplatform.dev';
+  const adminName = 'Admin';
+  const plainPassword = 'Admin@123';
 
-  const exists = await prisma.user.findUnique({
-    where: { email: adminEmail },
-  });
-
+  const exists = await prisma.user.findUnique({ where: { email: adminEmail } });
   if (!exists) {
+    const passwordHash = await bcrypt.hash(plainPassword, 10);
     await prisma.user.create({
       data: {
         email: adminEmail,
-        name: 'Admin',
-        role: 'admin',
+        name: adminName,
+        passwordHash,
+        role: Role.ADMIN,
       },
     });
-    console.log('✅ Usuário admin criado:', adminEmail);
+    console.log(`Admin criado: ${adminEmail} | senha: ${plainPassword}`);
   } else {
-    console.log('ℹ️ Usuário admin já existe:', adminEmail);
+    console.log('Admin já existe:', adminEmail);
   }
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Seed falhou:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().finally(() => prisma.$disconnect());
