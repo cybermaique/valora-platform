@@ -1,9 +1,9 @@
+# .github/workflows/auto-label.yml
 name: 🏷️ Auto Label PRs
 
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
-    # Se suas PRs vierem de fork, troque por pull_request_target (ver nota abaixo)
 
 permissions:
   contents: read
@@ -20,7 +20,7 @@ jobs:
           script: |
             const branch = context.payload.pull_request.head.ref
             const map = {
-              'feature/': 'feature',
+              'feature/': 'feat',      // título usa conventional commits
               'fix/': 'fix',
               'refactor/': 'refactor',
               'docs/': 'docs',
@@ -28,28 +28,65 @@ jobs:
               'chore/': 'chore',
             }
             const entry = Object.entries(map).find(([prefix]) => branch.startsWith(prefix))
-            if (!entry) {
-              console.log(`ℹ️ Nenhum prefixo conhecido para a branch: ${branch}`)
-              return
-            }
-            const label = entry[1]
+            if (!entry) { console.log(`No prefix for ${branch}`); return }
+            const [prefix, type] = entry
 
-            // Garante que a label existe; se não existir, cria
-            try {
-              await github.rest.issues.getLabel({ ...context.repo, name: label })
-            } catch {
-              await github.rest.issues.createLabel({
-                ...context.repo,
-                name: label,
-                color: 'BBBBBB',
-                description: `Auto label for ${label}`,
-              })
+            // garante label
+            const label = type === 'feat' ? 'feature' : type
+            try { await github.rest.issues.getLabel({ ...context.repo, name: label }) }
+            catch {
+              await github.rest.issues.createLabel({ ...context.repo, name: label, color: 'BBBBBB' })
             }
-
-            // Aplica a label
             await github.rest.issues.addLabels({
               ...context.repo,
               issue_number: context.payload.pull_request.number,
               labels: [label],
             })
             console.log(`✅ Applied label: ${label} (branch: ${branch})`)
+
+      - name: Normalize PR title from branch
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request
+            const branch = pr.head.ref
+
+            const map = {
+              'feature/': 'feat',
+              'fix/': 'fix',
+              'refactor/': 'refactor',
+              'docs/': 'docs',
+              'test/': 'test',
+              'chore/': 'chore',
+            }
+            const entry = Object.entries(map).find(([p]) => branch.startsWith(p))
+            if (!entry) { console.log(`No type for ${branch}`); return }
+            const [prefix, type] = entry
+
+            // branch: feature/auth-refresh-token
+            const rest = branch.slice(prefix.length) // "auth-refresh-token"
+            const [scope, ...words] = rest.split('/')
+            const summaryKebab = (words.length ? words.join('/') : scope).replace(/_/g,'-')
+            const summary = summaryKebab.replace(/[-_/]+/g,' ').trim()
+
+            // título atual
+            const current = pr.title.trim()
+            const conventional = new RegExp('^(feat|fix|refactor|docs|test|chore)\\(.+\\):\\s+.+')
+
+            // se já estiver no padrão, não mexe
+            if (conventional.test(current)) {
+              console.log('Title already conventional, skipping.')
+              return
+            }
+
+            // monta novo título usando o título atual como fallback de descrição
+            const description = summary || current.toLowerCase()
+            const scopeNorm = (words.length ? scope : 'general')
+            const newTitle = `${type}(${scopeNorm}): ${description}`
+
+            await github.rest.pulls.update({
+              ...context.repo,
+              pull_number: pr.number,
+              title: newTitle,
+            })
+            console.log(`✏️ Updated PR title → ${newTitle}`)
