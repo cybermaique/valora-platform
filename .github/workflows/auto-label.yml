@@ -1,9 +1,8 @@
-# .github/workflows/auto-label.yml
 name: 🏷️ Auto Label PRs
 
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened]
+    types: [opened, reopened]
 
 permissions:
   contents: read
@@ -20,7 +19,7 @@ jobs:
           script: |
             const branch = context.payload.pull_request.head.ref
             const map = {
-              'feature/': 'feat',      // título usa conventional commits
+              'feature/': 'feat',
               'fix/': 'fix',
               'refactor/': 'refactor',
               'docs/': 'docs',
@@ -28,21 +27,25 @@ jobs:
               'chore/': 'chore',
             }
             const entry = Object.entries(map).find(([prefix]) => branch.startsWith(prefix))
-            if (!entry) { console.log(`No prefix for ${branch}`); return }
+            if (!entry) return
             const [prefix, type] = entry
 
-            // garante label
             const label = type === 'feat' ? 'feature' : type
-            try { await github.rest.issues.getLabel({ ...context.repo, name: label }) }
-            catch {
-              await github.rest.issues.createLabel({ ...context.repo, name: label, color: 'BBBBBB' })
+            try {
+              await github.rest.issues.getLabel({ ...context.repo, name: label })
+            } catch {
+              await github.rest.issues.createLabel({
+                ...context.repo,
+                name: label,
+                color: 'BBBBBB',
+                description: `Auto label for ${label}`,
+              })
             }
             await github.rest.issues.addLabels({
               ...context.repo,
               issue_number: context.payload.pull_request.number,
               labels: [label],
             })
-            console.log(`✅ Applied label: ${label} (branch: ${branch})`)
 
       - name: Normalize PR title from branch
         uses: actions/github-script@v7
@@ -60,26 +63,18 @@ jobs:
               'chore/': 'chore',
             }
             const entry = Object.entries(map).find(([p]) => branch.startsWith(p))
-            if (!entry) { console.log(`No type for ${branch}`); return }
+            if (!entry) return
             const [prefix, type] = entry
 
-            // branch: feature/auth-refresh-token
-            const rest = branch.slice(prefix.length) // "auth-refresh-token"
+            const rest = branch.slice(prefix.length)
             const [scope, ...words] = rest.split('/')
-            const summaryKebab = (words.length ? words.join('/') : scope).replace(/_/g,'-')
-            const summary = summaryKebab.replace(/[-_/]+/g,' ').trim()
+            const summaryKebab = (words.length ? words.join('/') : scope).replace(/_/g, '-')
+            const summary = summaryKebab.replace(/[-_/]+/g, ' ').trim()
 
-            // título atual
             const current = pr.title.trim()
             const conventional = new RegExp('^(feat|fix|refactor|docs|test|chore)\\(.+\\):\\s+.+')
+            if (conventional.test(current)) return
 
-            // se já estiver no padrão, não mexe
-            if (conventional.test(current)) {
-              console.log('Title already conventional, skipping.')
-              return
-            }
-
-            // monta novo título usando o título atual como fallback de descrição
             const description = summary || current.toLowerCase()
             const scopeNorm = (words.length ? scope : 'general')
             const newTitle = `${type}(${scopeNorm}): ${description}`
@@ -89,4 +84,36 @@ jobs:
               pull_number: pr.number,
               title: newTitle,
             })
-            console.log(`✏️ Updated PR title → ${newTitle}`)
+
+      - name: Apply PR template based on type
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const path = require('path')
+
+            const branch = context.payload.pull_request.head.ref
+            const templatesDir = '.github/PULL_REQUEST_TEMPLATE'
+            const mapping = {
+              'feature/': 'feature.md',
+              'fix/': 'fix.md',
+              'refactor/': 'refactor.md',
+              'docs/': 'docs.md',
+              'test/': 'test.md',
+              'chore/': 'chore.md',
+            }
+
+            const entry = Object.entries(mapping).find(([prefix]) => branch.startsWith(prefix))
+            if (!entry) return
+            const [prefix, templateFile] = entry
+
+            const filePath = path.join(process.env.GITHUB_WORKSPACE, templatesDir, templateFile)
+            if (!fs.existsSync(filePath)) return
+
+            const content = fs.readFileSync(filePath, 'utf8')
+
+            await github.rest.pulls.update({
+              ...context.repo,
+              pull_number: context.payload.pull_request.number,
+              body: content,
+            })
