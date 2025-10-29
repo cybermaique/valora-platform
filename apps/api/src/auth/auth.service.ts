@@ -3,12 +3,11 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { PasswordService } from './password.service';
 import { TokenService } from './token.service';
 import { Role, User } from '@prisma/client';
 
-// Tipos de retorno bem definidos
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
@@ -21,7 +20,6 @@ export interface AuthResult {
   refreshExpiresAt: Date;
 }
 
-// Usuário “público” sem hash
 export type UserSafe = Omit<User, 'passwordHash'>;
 
 const REFRESH_DAYS = Number.isFinite(
@@ -45,13 +43,12 @@ export class AuthService {
   }): Promise<AuthResult> {
     const exists = await this.prisma.user.findUnique({
       where: { email: input.email },
-      select: { id: true }, // mínimo necessário
+      select: { id: true },
     });
     if (exists) throw new ConflictException('E-mail já cadastrado');
 
     const passwordHash = await this.passwords.hash(input.password);
 
-    // Cria o usuário completo (precisamos do role e do id)
     const created = await this.prisma.user.create({
       data: {
         email: input.email,
@@ -79,7 +76,6 @@ export class AuthService {
   }
 
   async login(input: { email: string; password: string }): Promise<AuthResult> {
-    // Para o login precisamos do hash
     const user = await this.prisma.user.findUnique({
       where: { email: input.email },
     });
@@ -106,7 +102,6 @@ export class AuthService {
   }
 
   async refresh(userId: string, refreshToken: string): Promise<AuthResult> {
-    // validateRefreshToken retorna o usuário completo do banco quando válido
     const user = await this.tokens.validateRefreshToken(userId, refreshToken);
     if (!user) throw new UnauthorizedException('Refresh inválido');
 
@@ -132,7 +127,6 @@ export class AuthService {
     return { ok: true };
   }
 
-  // Constrói um objeto seguro explicitamente (sem any, sem spread inferindo tipo solto)
   private toUserSafe(u: User): UserSafe {
     return {
       id: u.id,

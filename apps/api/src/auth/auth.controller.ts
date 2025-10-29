@@ -17,6 +17,12 @@ import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import type { JwtPayload } from './types/jwt-payload.type';
 
+interface AuthenticatedRequest extends Request {
+  cookies: {
+    refresh_token?: string;
+  };
+}
+
 function cookieOptions() {
   const secure = String(process.env.COOKIE_SECURE ?? 'false') === 'true';
   const sameSite =
@@ -67,10 +73,10 @@ export class AuthController {
   @Post('refresh')
   async refresh(
     @CurrentUser() user: JwtPayload,
-    @Req() req: Request,
+    @Req() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refresh = req.cookies?.['refresh_token'];
+    const refresh = req.cookies?.refresh_token;
     if (!refresh) {
       throw new UnauthorizedException('Refresh token ausente');
     }
@@ -97,11 +103,11 @@ export class AuthController {
   @UseGuards(RefreshAuthGuard)
   @Post('logout')
   async logout(
-    @Req() req: Request,
+    @Req() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: Response,
     @CurrentUser() user: JwtPayload,
   ) {
-    const refresh = req.cookies?.['refresh_token'];
+    const refresh = req.cookies?.refresh_token;
     if (refresh && user?.sub) {
       await this.auth.logout(user.sub, refresh);
     }

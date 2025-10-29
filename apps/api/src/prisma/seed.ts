@@ -25,4 +25,16 @@ async function main() {
   }
 }
 
-main().finally(() => prisma.$disconnect());
+main()
+  .catch((err: unknown) => {
+    if (err instanceof Error) {
+      console.error('[seed] Erro:', err.message);
+      console.error(err.stack);
+    } else {
+      console.error('[seed] Erro desconhecido:', err);
+    }
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
