@@ -51,7 +51,7 @@ Além disso, os usuários recebem **recomendações personalizadas** que aumenta
 ## 📂 Estrutura do Monorepo
 
 ```
-servicehub/
+valoraplatform/
 ├── apps/
 │   ├── api/      # NestJS + Prisma (backend)
 │   └── web/      # Next.js (frontend - App Router)
@@ -130,7 +130,7 @@ Gerenciamento de Schema: **Prisma Migrations**
 Configurar `.env`:
 
 ```
-DATABASE_URL="postgresql://user:password@localhost:5432/dynamicmarket"
+DATABASE_URL="postgresql://user:password@localhost:5432/valoraplatform"
 ```
 
 Rodar migrações:
