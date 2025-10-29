@@ -1,142 +1,172 @@
 # 🛒 Valora Platform
 
-**Valora Platform** é um marketplace full-stack com **precificação dinâmica**, controle inteligente de estoque e **sistema de recomendação** baseado em comportamento do usuário e demanda do produto.
+Valora Platform é um marketplace full-stack com precificação dinâmica, controle inteligente de estoque e engine de recomendação baseada em comportamento do usuário e demanda do produto.
 
-O objetivo principal é demonstrar **boas práticas de engenharia de software** aplicadas em um produto real, incluindo arquitetura limpa, DDD leve, otimizações de banco e pipeline completo de CI/CD.
+O objetivo principal é demonstrar boas práticas de engenharia de software moderna, aplicadas em um produto realista, escalável e observável, combinando arquitetura limpa, DDD leve, otimizações de banco e pipeline completo de CI/CD.
 
-Este projeto é **open source** e documentado publicamente para fins de estudo, portfólio e colaboração com a comunidade.
-
----
+Este projeto é open source e documentado publicamente para fins de estudo, portfólio e colaboração com a comunidade.
 
 ## 📌 Visão Geral do Produto
 
-O Valora Platform ajusta preços automaticamente com base em:
-- Demanda do produto
-- Disponibilidade em estoque
-- Regra estratégica por categoria
-- Comportamento do usuário
-- Sazonalidade (promoções, eventos, datas)
+O Valora Platform ajusta os preços automaticamente com base em múltiplos fatores:
 
-Além disso, os usuários recebem **recomendações personalizadas** que aumentam a conversão do funil de compras.
+- 📈 Demanda do produto em tempo real
+- 📦 Nível de estoque e velocidade de giro
+- 🎯 Regras estratégicas definidas por categoria
+- 👤 Comportamento do usuário (engajamento, carrinho, abandono)
+- 🗓️ Sazonalidade (eventos, feriados e campanhas promocionais)
 
-🎯 Foco em **inteligência de negócio** + **engenharia sênior** + **escalabilidade**.
+Além disso, o sistema inclui uma engine de recomendação que entrega sugestões personalizadas de produtos e combinações com maior probabilidade de conversão.
 
----
+🎯 **Foco principal:** inteligência de negócio + engenharia sênior + escalabilidade real
 
-## 🧠 Tecnologias e Arquitetura
+## 🧠 Arquitetura e Tecnologias
 
-### Backend
-- **Node.js + NestJS + TypeScript**
-- **Prisma ORM**
-- **PostgreSQL** (tuning de performance, índices compostos)
-- **Domain-Driven Design leve**
-- **Clean Architecture + SOLID**
-- **Eventos de domínio para evolução a microsserviços**
-- Testes com **Jest**
+### 🧩 Backend
 
-### Frontend
-- **React + Next.js (App Router)**
-- **SSR + SSG + ISR** por criticidade da página
-- **Zustand** para estado de UI e sessão
-- UX otimizada para funil de compras
+- Node.js + NestJS + TypeScript
+- Prisma ORM + PostgreSQL
+- Domain-Driven Design leve (DDD)
+- Clean Architecture + princípios SOLID
+- Redis para cache e controle de locks de preço
+- Eventos de domínio e Outbox Pattern (preparado para microsserviços)
+- Jest e Supertest para testes unitários e e2e
+- Swagger (OpenAPI) para contratos e testes manuais
 
-### DevOps e Observabilidade
-- **CI/CD com Azure Pipelines**
-- Deploy serverless em **Azure Static Web Apps + Azure Functions**
-- **Application Insights**: logs estruturados, métricas e tracing
-- Auditoria e segurança orientadas a produto de missão crítica
+### 💻 Frontend
 
----
+- React + Next.js (App Router)
+- SSR + SSG + ISR (renderização híbrida por criticidade)
+- Zustand para controle de estado leve
+- React Query para caching e invalidação de dados
+- Tailwind CSS + Radix UI para consistência visual
+- MSW (Mock Service Worker) para desenvolvimento desacoplado
+
+### ⚙️ DevOps e Observabilidade
+
+- Docker + Docker Compose
+- CI/CD com Azure Pipelines (lint, build, test, migrations e deploy automatizado)
+- Azure Static Web Apps + Azure Functions (deploy serverless)
+- Application Insights + OpenTelemetry: métricas, logs e tracing distribuído
+- Husky + Lint-Staged + Commitlint: consistência de commits e qualidade de código
 
 ## 📂 Estrutura do Monorepo
 
 ```
 valoraplatform/
 ├── apps/
-│   ├── api/      # NestJS + Prisma (backend)
-│   └── web/      # Next.js (frontend - App Router)
-├── packages/     # libs internas (futuro: design system, DTOs, configs)
-├── .github/      # CI/CD, PR templates, workflows (em breve)
+│   ├── api/        # NestJS + Prisma (backend)
+│   └── web/        # Next.js (frontend)
+├── packages/
+│   ├── contracts/  # DTOs e OpenAPI compartilhado
+│   ├── domain/     # Casos de uso e lógica pura
+│   └── ui/         # (futuro) Design System
+├── .github/        # Pipelines CI/CD e templates de PR
 └── README.md
-
 ```
 
-## 🚀 Roadmap
+## 🚀 Roadmap de Desenvolvimento
 
-### ✅ Fase 0
-Monorepo configurado com API + Web e testes iniciais
+### ✅ Fase 0 — Setup e Fundamentos
+
+- Monorepo com workspaces (API + Web)
+- TypeScript configurado
+- ESLint, Prettier, Husky e Commitlint
+- Prisma + PostgreSQL + Seed inicial
+- Ambiente Docker local
 
 ### 🔜 Fase 1 — Autenticação + RBAC
-- Registro/Login
-- Refresh token seguro
-- Perfis: `USER` e `ADMIN`
-- Sessão validada no servidor (Next.js SSR)
 
-### 🔜 Fase 2 — Catálogo
-- Produtos, categorias, imagens, estoque
-- Lista com SSG + ISR
-- PDP (Product Details Page) SSR
+- Registro e Login via JWT (Access + Refresh HttpOnly)
+- Perfis: USER e ADMIN
+- Proteção de rotas e contexto de sessão SSR no Next.js
+- Testes unitários e integração
 
-### 🔜 Fase 3 — Pricing Engine
-- Regras dinâmicas com prioridade
-- PriceSnapshot no add-to-cart
+### 🔜 Fase 2 — Catálogo de Produtos
+
+- CRUD completo de produtos, categorias e estoque
+- Páginas: Home, Categoria, Detalhes (PDP)
+- Renderização híbrida (SSG + ISR)
+- Indexação otimizada (SEO + prefetch)
+- Upload de imagens via Azure Blob Storage
+
+### 🔜 Fase 3 — Pricing Engine (MVP)
+
+- Pipeline determinístico de precificação:
+  - Estoque, demanda, sazonalidade e regras de negócio
+- Cache quente com Redis
+- GET /pricing/quote e POST /pricing/lock
+- Price Journal com versionamento e explicabilidade (explain)
+- Métricas: p95 ≤ 150 ms, taxa de acerto de cache ≥ 80%
 
 ### 🔜 Fase 4 — Carrinho + Checkout
-- Conexão com estoque real
-- Conciliação de concorrência (optimistic locking)
-- Status de pedido
 
-### 🔜 Fase 5 — Recomendação
-- Coleta de eventos
-- Recomendações contextualizadas
+- Lock de preço com TTL e idempotência
+- Conciliação com estoque real
+- Otimistic locking e rollback
+- Fluxo completo de pedido (Payment stub)
+- Página de confirmação
 
-### 🔜 Fase 6 — Observabilidade + Segurança
-- Auditoria de domínio
-- Logging e tracing distribuído
+### 🔜 Fase 5 — Engine de Recomendação
+
+- Coleta de eventos (/events/ux)
+- Heurísticas responsivas (abandonos, cliques, dwell time)
+- Recomendação por categoria e afinidade
+- A/B testing e logging de resultados
+
+### 🔜 Fase 6 — Observabilidade e Segurança
+
+- Dashboard técnico: métricas de pricing, cache, lock e erros
+- Logging estruturado com traceId
+- Helmet, CORS restrito, Rate Limiting
+- Auditoria de alterações de preço
+- Logs de compliance e rollback seguro
 
 ### 🔜 Fase 7 — Design System + Storybook
-- UI Components Library independente
-- Publicação NPM
 
----
+- Biblioteca de componentes UI com tokens de design
+- Documentação visual no Storybook
+- Publicação no NPM
 
-## ✅ Scripts Disponíveis
+## 🧪 Scripts Disponíveis
 
 ### API (NestJS)
+
 ```bash
 cd apps/api
-npm run start:dev    
-npm run test         
-npm run prisma       
+npm run start:dev      # modo desenvolvimento
+npm run build          # compila para produção
+npm run test           # roda testes unitários
+npm run prisma:migrate # aplica migrações
+npm run prisma:seed    # popula dados iniciais
 ```
 
-### WEB (Next.js)
+### Web (Next.js)
 
 ```bash
 cd apps/web
-npm run dev          # desenvolvimento
-npm run build        # build
-npm run start        # produção
+npm run dev     # ambiente local
+npm run build   # build de produção
+npm run start   # servidor em produção
 ```
-
----
 
 ## 📦 Banco de Dados
 
-Tecnologia: **PostgreSQL**
+- Banco: PostgreSQL
+- ORM: Prisma
 
-Gerenciamento de Schema: **Prisma Migrations**
-
-Configurar `.env`:
+`.env` exemplo:
 
 ```
 DATABASE_URL="postgresql://user:password@localhost:5432/valoraplatform"
+JWT_SECRET="seu-segredo-aqui"
+COOKIE_DOMAIN="localhost"
+COOKIE_SECURE=false
 ```
 
-Rodar migrações:
+Executar migrações:
 
 ```bash
-cd apps/api
 npx prisma migrate dev
 ```
 
@@ -146,53 +176,65 @@ Popular dados iniciais:
 npm run prisma:seed
 ```
 
----
+## 🔄 Integração Contínua (CI/CD)
 
-## ✅ CI/CD
+Pipeline executa automaticamente:
 
-Pipeline com Azure Pipelines executará:
+| Etapa                    | Descrição                               | Status |
+| ------------------------ | --------------------------------------- | :----: |
+| 🧹 Lint + Type Check     | Verificação estática de código          |   ✅   |
+| 🧪 Testes Unitários      | Testes automatizados no backend e front |   🔜   |
+| 🚀 Build + Preview Deploy | Build completo e deploy para ambiente teste |   🔜   |
+| ☁️ Deploy Produção       | Deploy automatizado em Azure            |   🔜   |
 
-| Etapa                | Status |
-| -------------------- | :----: |
-| Lint + Type Checking |    ✅   |
-| Testes Unitários     |   🔜   |
-| E2E / Preview Deploy |   🔜   |
-| Deploy Prod          |   🔜   |
+## 🧩 Padrões de Código e Commits
 
----
+- Conventional Commits (feat:, fix:, chore:, refactor: etc.)
+- Commitlint impede commits fora do padrão
+- Pre-commit hooks (Husky + Lint-Staged) garantem qualidade antes do push
 
 ## 👨‍💻 Contribuição
 
 Contribuições são bem-vindas!
 
-1. Crie sua **branch**:
+1. Crie sua branch:
 
-```bash
-git checkout -b feature/nome-da-feature
-```
+   ```bash
+   git checkout -b feature/nome-da-feature
+   ```
 
-2. Faça commit seguindo **Conventional Commits**:
+2. Faça commit seguindo o padrão:
 
-```bash
-feat(api-auth): implement login with jwt
-```
+   ```bash
+   feat(api-pricing): implement dynamic pricing rules
+   ```
 
-3. Abra um **Pull Request**
+3. Abra um Pull Request descrevendo o que foi feito.
 
----
+## 📊 Observabilidade e Logs
+
+- Application Insights / OpenTelemetry configurado para tracing distribuído
+- Logs estruturados com:
+  - traceId
+  - quoteId
+  - ruleVersion
+  - modelVersion
+- Painel de métricas:
+  - p95 de latência
+  - acerto de cache
+  - falhas de lock
+  - rollback de preço
 
 ## 📄 Licença
 
-MIT — totalmente liberado para estudo e aprimoramento.
-
----
+Licença MIT — livre para uso e modificação.
 
 ## ✨ Autor
 
-Desenvolvido por [**Maique Moraes**](https://www.linkedin.com/in/maique-moraes/)
-📌 Desenvolvedor Fullstack Sênior | React, Next, Node & Nest | Arquitetura, SSR, CI/CD,Q Azure & AWS
+Desenvolvido por Maique Moraes
 
----
+📍 Florianópolis/SC — Brasil
 
-Se este projeto te ajudar de alguma forma, deixa uma ⭐ no repositório.
-Acompanhe as próximas entregas. 🚀
+Desenvolvedor Full Stack Sênior | React, Next, Node, Nest, DDD, CI/CD e Azure
+
+Se este projeto te inspirar, deixe uma ⭐ no repositório e acompanhe as próximas entregas 🚀
