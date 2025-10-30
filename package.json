@@ -1,7 +1,7 @@
 {
   "name": "valoraplatform",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.1",
   "workspaces": [
     "apps/web",
     "apps/api"
@@ -9,9 +9,20 @@
   "scripts": {
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
-    "dev": "npm run dev:api & npm run dev:web",
+    "dev": "npm run dev:web & npm run dev:api",
     "build": "npm run build --workspaces",
     "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^24.9.2",
+    "eslint": "^9.38.0",
+    "eslint-config-next": "16.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.2.2"
   }
 }
