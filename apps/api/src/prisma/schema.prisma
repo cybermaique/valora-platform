@@ -12,6 +12,17 @@ enum Role {
   ADMIN
 }
 
+enum PriceRuleType {
+  FIXED_AMOUNT
+  PERCENTAGE
+}
+
+enum DemandEventKind {
+  VIEW
+  ADD_TO_CART
+  PURCHASE
+}
+
 model User {
   id            String         @id @default(uuid())
   email         String         @unique
@@ -37,4 +48,97 @@ model RefreshToken {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model Product {
+  id             String             @id @default(uuid())
+  name           String
+  slug           String             @unique
+  sku            String             @unique
+  description    String?
+  basePrice      Decimal            @db.Decimal(10, 2)
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  categories     ProductCategory[]
+  inventories    Inventory[]
+  priceRules     PriceRule[]
+  priceSnapshots PriceSnapshot[]
+  demandEvents   DemandEvent[]
+
+  @@index([name])
+}
+
+model Category {
+  id         String            @id @default(uuid())
+  name       String
+  slug       String            @unique
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  products   ProductCategory[]
+
+  @@unique([name])
+}
+
+model ProductCategory {
+  productId  String
+  categoryId String
+  assignedAt DateTime @default(now())
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+}
+
+model Inventory {
+  id        String   @id @default(uuid())
+  productId String   @unique
+  quantity  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model PriceRule {
+  id        String         @id @default(uuid())
+  type      PriceRuleType
+  config    Json
+  priority  Int            @default(0)
+  isActive  Boolean        @default(true)
+  productId String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([isActive, priority])
+}
+
+model PriceSnapshot {
+  id          String   @id @default(uuid())
+  productId   String
+  finalPrice  Decimal  @db.Decimal(10, 2)
+  components  Json
+  takenAt     DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, takenAt])
+}
+
+model DemandEvent {
+  id        String          @id @default(uuid())
+  productId String
+  kind      DemandEventKind
+  at        DateTime        @default(now())
+  metadata  Json?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, at])
+  @@index([kind, at])
 }
