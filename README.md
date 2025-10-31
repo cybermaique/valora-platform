@@ -57,10 +57,6 @@ valoraplatform/
 ├── apps/
 │   ├── api/        # NestJS + Prisma (backend)
 │   └── web/        # Next.js (frontend)
-├── packages/
-│   ├── contracts/  # DTOs e OpenAPI compartilhado
-│   ├── domain/     # Casos de uso e lógica pura
-│   └── ui/         # (futuro) Design System
 ├── .github/        # Pipelines CI/CD e templates de PR
 └── README.md
 ```
